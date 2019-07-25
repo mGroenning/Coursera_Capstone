@@ -1,0 +1,146 @@
+#!/usr/bin/env python
+# coding: utf-8
+
+# In[1]:
+
+
+get_ipython().system('conda install -c conda-forge lxml --yes')
+
+
+# In[3]:
+
+
+get_ipython().system('conda install -c conda-forge geocoder --yes')
+
+
+# In[4]:
+
+
+get_ipython().system('conda install -c conda-forge geopy --yes')
+
+
+# In[105]:
+
+
+import numpy as np # library to handle data in a vectorized manner
+
+import pandas as pd # library for data analsysis
+pd.set_option('display.max_columns', None)
+pd.set_option('display.max_rows', None)
+
+import json # library to handle JSON files
+
+from geopy.geocoders import Nominatim # convert an address into latitude and longitude values
+
+import requests # library to handle requests
+from pandas.io.json import json_normalize # tranform JSON file into a pandas dataframe
+
+# Matplotlib and associated plotting modules
+import matplotlib.cm as cm
+import matplotlib.colors as colors
+
+# import k-means from clustering stage
+from sklearn.cluster import KMeans
+
+import lxml 
+
+print('Libraries imported.')
+
+
+# In[110]:
+
+
+#Import dataset and rename 'Postcode'
+request = requests.get('https://en.wikipedia.org/wiki/List_of_postal_codes_of_Canada:_M')
+my_table  = pd.read_html('https://en.wikipedia.org/wiki/List_of_postal_codes_of_Canada:_M',header=0)[0]
+my_table.rename(columns = {'Postcode':'PostalCode'},inplace=True)
+
+
+# In[113]:
+
+
+my_table.head()
+
+
+# In[114]:
+
+
+# Combine rows into one row with the neighborhoods separated with a comma.
+my_table = my_table.groupby(['PostalCode','Borough'])['Neighbourhood'].apply(', '.join).reset_index()
+
+
+# In[115]:
+
+
+# If a cell has a borough but a Not assigned neighborhood, then the neighborhood will be the same as the borough.
+my_table.loc[my_table['Neighbourhood']=='Not assigned','Neighbourhood'] = my_table.loc[my_table['Neighbourhood']=='Not assigned']['Borough']
+
+
+# In[116]:
+
+
+my_table.head()
+
+
+# In[117]:
+
+
+my_table.shape
+
+
+# In[119]:
+
+
+# Since Geocoder is not reliable i'm using the CSV
+data = pd.read_csv("Geospatial_Coordinates.csv") 
+# Preview the first 5 lines of the loaded data 
+data.rename(columns = {'Postal Code':'PostalCode'},inplace=True)
+data.head()
+
+
+# In[120]:
+
+
+data.shape
+
+
+# In[121]:
+
+
+# Merge the two datasets based on PostalCode
+df = pd.merge(my_table, data,
+how='left', on='PostalCode')
+df.head()
+
+
+# In[100]:
+
+
+# Clean up by dropping the NaN's
+df = df.dropna()
+df.head()
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+
+
